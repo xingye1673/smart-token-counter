@@ -1,0 +1,17 @@
+{
+  "command.toggleDisplay": "Toggle Token Count Display",
+  "command.openSettings": "Open Token Counter Settings",
+  "config.enabled": "Enable Token Counter functionality",
+  "config.tokenizerType": "Select tokenizer type",
+  "config.warningThreshold": "Warning threshold: Show yellow warning when token count exceeds this value",
+  "config.dangerThreshold": "Danger threshold: Show red warning when token count exceeds this value",
+  "config.showInStatusBar": "Show token count in status bar",
+  "config.updateMode": "Update mode: Choose how frequently token count updates",
+  "statusBar.tokens": "tokens",
+  "statusBar.selected": "selected",
+  "statusBar.file": "file",
+  "statusBar.noContent": "no content",
+  "statusBar.calculating": "calculating...",
+  "notification.thresholdExceeded": "Token count has exceeded threshold",
+  "notification.configUpdated": "Configuration updated"
+}

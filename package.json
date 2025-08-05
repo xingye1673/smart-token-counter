@@ -1,0 +1,115 @@
+{
+  "name": "smart-token-counter",
+  "displayName": "智能Token计数器",
+  "description": "在VSCode状态栏显示当前文件或选择区域的token数量，支持多种LLM分词方案",
+  "version": "1.0.0",
+  "publisher": "Xingye1673",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "token",
+    "count",
+    "llm",
+    "ai",
+    "tokenizer",
+    "status-bar"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "smart-token-counter.toggleDisplay",
+        "title": "%command.toggleDisplay%",
+        "category": "Smart Token Counter"
+      },
+      {
+        "command": "smart-token-counter.openSettings",
+        "title": "%command.openSettings%",
+        "category": "Smart Token Counter"
+      }
+    ],
+    "configuration": {
+      "title": "Smart Token Counter",
+      "properties": {
+        "smartTokenCounter.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.enabled%"
+        },
+        "smartTokenCounter.tokenizerType": {
+          "type": "string",
+          "enum": [
+            "gpt-3.5-turbo",
+            "gpt-4",
+            "claude",
+            "llama",
+            "chinese-word-count",
+            "simple-word-count"
+          ],
+          "default": "gpt-3.5-turbo",
+          "description": "%config.tokenizerType%"
+        },
+        "smartTokenCounter.warningThreshold": {
+          "type": "number",
+          "default": 4000,
+          "minimum": 100,
+          "description": "%config.warningThreshold%"
+        },
+        "smartTokenCounter.dangerThreshold": {
+          "type": "number",
+          "default": 8000,
+          "minimum": 100,
+          "description": "%config.dangerThreshold%"
+        },
+        "smartTokenCounter.showInStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.showInStatusBar%"
+        },
+        "smartTokenCounter.updateMode": {
+          "type": "string",
+          "enum": [
+            "realtime",
+            "onSave",
+            "manual"
+          ],
+          "default": "realtime",
+          "description": "%config.updateMode%"
+        }
+      }
+    },
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "smart-token-counter.toggleDisplay",
+          "when": "editorIsOpen"
+        },
+        {
+          "command": "smart-token-counter.openSettings"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package",
+    "package:pre-release": "vsce package --pre-release"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.74.0",
+    "@types/node": "16.x",
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "tiktoken": "^1.0.10"
+  }
+}

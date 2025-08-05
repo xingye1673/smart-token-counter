@@ -1,0 +1,17 @@
+{
+  "command.toggleDisplay": "切换Token计数显示",
+  "command.openSettings": "打开Token计数器设置",
+  "config.enabled": "是否启用Token计数器功能",
+  "config.tokenizerType": "选择分词器类型",
+  "config.warningThreshold": "警告阈值：Token数量超过此值时显示黄色警告",
+  "config.dangerThreshold": "危险阈值：Token数量超过此值时显示红色警告",
+  "config.showInStatusBar": "是否在状态栏显示Token计数",
+  "config.updateMode": "更新模式：选择Token计数的更新频率",
+  "statusBar.tokens": "个Token",
+  "statusBar.selected": "已选择",
+  "statusBar.file": "文件",
+  "statusBar.noContent": "无内容",
+  "statusBar.calculating": "计算中...",
+  "notification.thresholdExceeded": "Token数量已超过阈值",
+  "notification.configUpdated": "配置已更新"
+}
