@@ -2,7 +2,7 @@
   "name": "smart-token-counter",
   "displayName": "智能Token计数器",
   "description": "在VSCode状态栏显示当前文件或选择区域的token数量，支持多种LLM分词方案",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "publisher": "xingye1673",
   "engines": {
     "vscode": "^1.74.0"
@@ -26,6 +26,7 @@
     "onStartupFinished"
   ],
   "main": "./out/extension.js",
+  "icon": "images/icon.png",
   "contributes": {
     "commands": [
       {
