@@ -2,8 +2,8 @@
   "name": "smart-token-counter",
   "displayName": "智能Token计数器",
   "description": "在VSCode状态栏显示当前文件或选择区域的token数量，支持多种LLM分词方案",
-  "version": "1.0.0",
-  "publisher": "Xingye1673",
+  "version": "1.1.0",
+  "publisher": "xingye1673",
   "engines": {
     "vscode": "^1.74.0"
   },
@@ -36,6 +36,11 @@
       {
         "command": "smart-token-counter.openSettings",
         "title": "%command.openSettings%",
+        "category": "Smart Token Counter"
+      },
+      {
+        "command": "smart-token-counter.manualRefresh",
+        "title": "%command.manualRefresh%",
         "category": "Smart Token Counter"
       }
     ],
@@ -97,6 +102,10 @@
         },
         {
           "command": "smart-token-counter.openSettings"
+        },
+        {
+          "command": "smart-token-counter.manualRefresh",
+          "when": "editorIsOpen"
         }
       ]
     }

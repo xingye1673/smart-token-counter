@@ -10,6 +10,8 @@ export class StatusBarManager implements vscode.Disposable {
     private statusBarItem: vscode.StatusBarItem;
     private i18nProvider: I18nProvider;
     private configManager: ConfigManager;
+    private updateTimeout: NodeJS.Timeout | undefined;
+    private lastText: string = '';
 
     constructor(
         context: vscode.ExtensionContext,
@@ -38,7 +40,7 @@ export class StatusBarManager implements vscode.Disposable {
     }
 
     /**
-     * 更新状态栏显示内容
+     * 更新状态栏显示内容（带防抖功能）
      * @param text 要显示的文本
      * @param colorState 颜色状态
      */
@@ -48,6 +50,30 @@ export class StatusBarManager implements vscode.Disposable {
             return;
         }
 
+        // 如果文本相同，避免无意义的更新
+        if (this.lastText === text) {
+            return;
+        }
+
+        this.lastText = text;
+
+        // 清除之前的延迟更新
+        if (this.updateTimeout) {
+            clearTimeout(this.updateTimeout);
+        }
+
+        // 延迟更新以减少频繁刷新造成的闪烁
+        this.updateTimeout = setTimeout(() => {
+            this._doUpdateDisplay(text, colorState);
+        }, 50);
+    }
+
+    /**
+     * 立即更新状态栏显示内容（无防抖）
+     * @param text 要显示的文本
+     * @param colorState 颜色状态
+     */
+    private _doUpdateDisplay(text: string, colorState: 'normal' | 'warning' | 'danger' | 'error'): void {
         this.statusBarItem.text = `$(symbol-keyword) ${text}`;
         this.statusBarItem.backgroundColor = this.getBackgroundColor(colorState);
         this.statusBarItem.color = this.getTextColor(colorState);
@@ -253,6 +279,9 @@ export class StatusBarManager implements vscode.Disposable {
      * 释放资源
      */
     public dispose(): void {
+        if (this.updateTimeout) {
+            clearTimeout(this.updateTimeout);
+        }
         if (this.statusBarItem) {
             this.statusBarItem.dispose();
         }

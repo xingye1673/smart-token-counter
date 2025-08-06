@@ -42,9 +42,20 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.executeCommand('workbench.action.openSettings', 'smartTokenCounter');
     });
 
+    // 注册命令：手动刷新Token计数
+    const manualRefreshCommand = vscode.commands.registerCommand('smart-token-counter.manualRefresh', () => {
+        const activeEditor = vscode.window.activeTextEditor;
+        if (activeEditor && configManager.get('enabled')) {
+            updateTokenCount(activeEditor, tokenCounter, statusBarManager, i18nProvider);
+            vscode.window.showInformationMessage(i18nProvider.getMessage('notification.manualRefresh'));
+        } else {
+            vscode.window.showWarningMessage('没有活动的编辑器或Token计数器已禁用');
+        }
+    });
+
     // 监听文本编辑器变化事件
     const onDidChangeActiveTextEditor = vscode.window.onDidChangeActiveTextEditor((editor) => {
-        if (editor && configManager.get('enabled')) {
+        if (editor && configManager.get('enabled') && configManager.get('updateMode') !== 'manual') {
             updateTokenCount(editor, tokenCounter, statusBarManager, i18nProvider);
         } else {
             statusBarManager.hide();
@@ -64,7 +75,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     // 监听文本选择变化事件
     const onDidChangeTextEditorSelection = vscode.window.onDidChangeTextEditorSelection((event) => {
-        if (configManager.get('enabled')) {
+        if (configManager.get('enabled') && configManager.get('updateMode') !== 'manual') {
             updateTokenCount(event.textEditor, tokenCounter, statusBarManager, i18nProvider);
         }
     });
@@ -97,6 +108,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         toggleDisplayCommand,
         openSettingsCommand,
+        manualRefreshCommand,
         onDidChangeActiveTextEditor,
         onDidChangeTextDocument,
         onDidChangeTextEditorSelection,
@@ -107,7 +119,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     // 如果当前有活动的编辑器，立即更新Token计数
     const activeEditor = vscode.window.activeTextEditor;
-    if (activeEditor && configManager.get('enabled')) {
+    if (activeEditor && configManager.get('enabled') && configManager.get('updateMode') !== 'manual') {
         updateTokenCount(activeEditor, tokenCounter, statusBarManager, i18nProvider);
     }
 
@@ -151,11 +163,8 @@ function updateTokenCount(
         }
 
         // 异步计算Token数量以避免阻塞UI
-        statusBarManager.updateDisplay(
-            i18nProvider.getMessage('statusBar.calculating'),
-            'normal'
-        );
-
+        // 不显示"计算中"状态，以减少闪烁
+        
         // 使用setTimeout来异步执行Token计算，避免阻塞主线程
         setTimeout(() => {
             const tokenCount = tokenCounter.countTokens(text);
@@ -175,6 +184,21 @@ function updateTokenCount(
 }
 
 /**
+ * 格式化Token数量显示
+ * @param tokenCount Token数量
+ * @returns 格式化后的数量字符串
+ */
+function formatTokenCount(tokenCount: number): string {
+    if (tokenCount >= 1000000) {
+        return `${(tokenCount / 1000000).toFixed(1)}M`;
+    } else if (tokenCount >= 1000) {
+        return `${(tokenCount / 1000).toFixed(1)}K`;
+    } else {
+        return tokenCount.toString();
+    }
+}
+
+/**
  * 格式化显示文本
  * @param tokenCount Token数量
  * @param isSelection 是否为选择的文本
@@ -187,7 +211,8 @@ function formatDisplayText(tokenCount: number, isSelection: boolean, i18nProvide
         ? i18nProvider.getMessage('statusBar.selected')
         : i18nProvider.getMessage('statusBar.file');
     
-    return `${prefix}: ${tokenCount} ${tokensText}`;
+    const formattedCount = formatTokenCount(tokenCount);
+    return `${prefix}: ${formattedCount} ${tokensText}`;
 }
 
 /**

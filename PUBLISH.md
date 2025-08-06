@@ -4,7 +4,7 @@
 - **插件ID**: `xingye1673.smart-token-counter`
 - **显示名称**: 智能Token计数器 (Smart Token Counter)
 - **版本**: 1.0.0
-- **发布者**: Xingye1673
+- **发布者**: xingye1673
 - **类别**: Other
 
 ## 插件描述
