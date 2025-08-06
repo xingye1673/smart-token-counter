@@ -2,7 +2,7 @@
   "name": "smart-token-counter",
   "displayName": "智能Token计数器",
   "description": "在VSCode状态栏显示当前文件或选择区域的token数量，支持多种LLM分词方案",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "publisher": "xingye1673",
   "engines": {
     "vscode": "^1.74.0"
@@ -20,7 +20,13 @@
     "llm",
     "ai",
     "tokenizer",
-    "status-bar"
+    "status-bar",
+    "gpt",
+    "claude",
+    "chatgpt",
+    "token-counter",
+    "smart-counter",
+    "programming-assistant"
   ],
   "activationEvents": [
     "onStartupFinished"
@@ -77,6 +83,11 @@
           "default": 8000,
           "minimum": 100,
           "description": "%config.dangerThreshold%"
+        },
+        "smartTokenCounter.enableColorWarning": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.enableColorWarning%"
         },
         "smartTokenCounter.showInStatusBar": {
           "type": "boolean",

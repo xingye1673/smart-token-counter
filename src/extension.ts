@@ -143,35 +143,35 @@ function updateTokenCount(
         // 获取要计算的文本内容
         let text: string;
         let isSelection = false;
+        let fileTokenCount: number | undefined;
+
+        // 先计算整个文件的Token数量（用于显示对比）
+        const fullText = editor.document.getText();
+        fileTokenCount = fullText.trim() ? tokenCounter.countTokens(fullText) : 0;
 
         if (editor.selection && !editor.selection.isEmpty) {
             // 如果有选择的文本，计算选择部分的Token数量
             text = editor.document.getText(editor.selection);
             isSelection = true;
         } else {
-            // 否则计算整个文件的Token数量
-            text = editor.document.getText();
+            // 否则使用整个文件的内容
+            text = fullText;
             isSelection = false;
         }
 
         if (!text.trim()) {
-            statusBarManager.updateDisplay(
-                `0 ${i18nProvider.getMessage('statusBar.tokens')}`,
-                'normal'
-            );
+            statusBarManager.updateDisplay('0 T', 'normal', isSelection, fileTokenCount);
             return;
         }
 
         // 异步计算Token数量以避免阻塞UI
-        // 不显示"计算中"状态，以减少闪烁
-        
         // 使用setTimeout来异步执行Token计算，避免阻塞主线程
         setTimeout(() => {
-            const tokenCount = tokenCounter.countTokens(text);
-            const displayText = formatDisplayText(tokenCount, isSelection, i18nProvider);
+            const tokenCount = isSelection ? tokenCounter.countTokens(text) : fileTokenCount || 0;
+            const displayText = formatDisplayText(tokenCount, isSelection, fileTokenCount);
             const colorState = getColorState(tokenCount, tokenCounter.getConfig());
             
-            statusBarManager.updateDisplay(displayText, colorState);
+            statusBarManager.updateDisplay(displayText, colorState, isSelection, fileTokenCount);
         }, 10);
 
     } catch (error) {
@@ -202,17 +202,18 @@ function formatTokenCount(tokenCount: number): string {
  * 格式化显示文本
  * @param tokenCount Token数量
  * @param isSelection 是否为选择的文本
- * @param i18nProvider 国际化提供器
+ * @param fileTokenCount 文件总Token数（选择时显示）
  * @returns 格式化后的显示文本
  */
-function formatDisplayText(tokenCount: number, isSelection: boolean, i18nProvider: I18nProvider): string {
-    const tokensText = i18nProvider.getMessage('statusBar.tokens');
-    const prefix = isSelection 
-        ? i18nProvider.getMessage('statusBar.selected')
-        : i18nProvider.getMessage('statusBar.file');
-    
+function formatDisplayText(tokenCount: number, isSelection: boolean, fileTokenCount?: number): string {
     const formattedCount = formatTokenCount(tokenCount);
-    return `${prefix}: ${formattedCount} ${tokensText}`;
+    
+    if (isSelection && fileTokenCount !== undefined) {
+        const formattedFileCount = formatTokenCount(fileTokenCount);
+        return `${formattedCount} / ${formattedFileCount} T`;
+    } else {
+        return `${formattedCount} T`;
+    }
 }
 
 /**

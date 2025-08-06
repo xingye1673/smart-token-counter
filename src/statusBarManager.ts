@@ -43,8 +43,10 @@ export class StatusBarManager implements vscode.Disposable {
      * 更新状态栏显示内容（带防抖功能）
      * @param text 要显示的文本
      * @param colorState 颜色状态
+     * @param isSelection 是否为选择的文本
+     * @param fileTokenCount 文件总Token数（选择时用于显示对比）
      */
-    public updateDisplay(text: string, colorState: 'normal' | 'warning' | 'danger' | 'error'): void {
+    public updateDisplay(text: string, colorState: 'normal' | 'warning' | 'danger' | 'error', isSelection?: boolean, fileTokenCount?: number): void {
         if (!this.configManager.get('showInStatusBar')) {
             this.hide();
             return;
@@ -64,7 +66,7 @@ export class StatusBarManager implements vscode.Disposable {
 
         // 延迟更新以减少频繁刷新造成的闪烁
         this.updateTimeout = setTimeout(() => {
-            this._doUpdateDisplay(text, colorState);
+            this._doUpdateDisplay(text, colorState, isSelection, fileTokenCount);
         }, 50);
     }
 
@@ -72,14 +74,22 @@ export class StatusBarManager implements vscode.Disposable {
      * 立即更新状态栏显示内容（无防抖）
      * @param text 要显示的文本
      * @param colorState 颜色状态
+     * @param isSelection 是否为选择的文本
+     * @param fileTokenCount 文件总Token数（选择时用于显示对比）
      */
-    private _doUpdateDisplay(text: string, colorState: 'normal' | 'warning' | 'danger' | 'error'): void {
-        this.statusBarItem.text = `$(symbol-keyword) ${text}`;
-        this.statusBarItem.backgroundColor = this.getBackgroundColor(colorState);
-        this.statusBarItem.color = this.getTextColor(colorState);
+    private _doUpdateDisplay(text: string, colorState: 'normal' | 'warning' | 'danger' | 'error', isSelection?: boolean, fileTokenCount?: number): void {
+        // 根据是否启用颜色警告决定是否应用颜色
+        const shouldApplyColor = this.configManager.get('enableColorWarning') !== false;
+        const effectiveColorState = shouldApplyColor ? colorState : 'normal';
+        
+        // 设置状态栏文本，使用动态图标和新格式
+        const icon = isSelection ? '$(selection)' : '$(file-code)';
+        this.statusBarItem.text = `${icon} ${text}`;
+        this.statusBarItem.backgroundColor = this.getBackgroundColor(effectiveColorState);
+        this.statusBarItem.color = this.getTextColor(effectiveColorState);
         
         // 更新工具提示
-        this.updateTooltip(text, colorState);
+        this.updateTooltip(text, colorState, isSelection, fileTokenCount);
         
         this.show();
     }
@@ -138,22 +148,29 @@ export class StatusBarManager implements vscode.Disposable {
      * 更新工具提示信息
      * @param text 当前显示的文本
      * @param colorState 颜色状态
+     * @param isSelection 是否为选择的文本
+     * @param fileTokenCount 文件总Token数（选择时用于显示对比）
      */
-    private updateTooltip(text: string, colorState: 'normal' | 'warning' | 'danger' | 'error'): void {
+    private updateTooltip(text: string, colorState: 'normal' | 'warning' | 'danger' | 'error', isSelection?: boolean, fileTokenCount?: number): void {
         let tooltip = `智能Token计数器\n\n当前: ${text}`;
+        
+        // 如果是选择模式且有文件总数，显示对比信息
+        if (isSelection && fileTokenCount !== undefined) {
+            tooltip += `\n文件总计: ${this.formatTokenCount(fileTokenCount)} T`;
+        }
         
         const config = this.configManager.getAll();
         tooltip += `\n分词器: ${this.getTokenizerDisplayName(config.tokenizerType)}`;
-        tooltip += `\n警告阈值: ${config.warningThreshold}`;
-        tooltip += `\n危险阈值: ${config.dangerThreshold}`;
+        tooltip += `\n提醒阈值: ${config.warningThreshold}`;
+        tooltip += `\n关注阈值: ${config.dangerThreshold}`;
         
         // 根据颜色状态添加提示信息
         switch (colorState) {
             case 'warning':
-                tooltip += `\n\n⚠️ Token数量接近警告阈值`;
+                tooltip += `\n\n💡 Token数量已超过提醒阈值`;
                 break;
             case 'danger':
-                tooltip += `\n\n🚨 Token数量已超过危险阈值`;
+                tooltip += `\n\n� Token数量已超过关注阈值`;
                 break;
             case 'error':
                 tooltip += `\n\n❌ 计算过程中发生错误`;
@@ -181,6 +198,21 @@ export class StatusBarManager implements vscode.Disposable {
         };
         
         return displayNames[tokenizerType] || tokenizerType;
+    }
+
+    /**
+     * 格式化Token数量显示
+     * @param tokenCount Token数量
+     * @returns 格式化后的数量字符串
+     */
+    private formatTokenCount(tokenCount: number): string {
+        if (tokenCount >= 1000000) {
+            return `${(tokenCount / 1000000).toFixed(1)}M`;
+        } else if (tokenCount >= 1000) {
+            return `${(tokenCount / 1000).toFixed(1)}K`;
+        } else {
+            return tokenCount.toString();
+        }
     }
 
     /**
