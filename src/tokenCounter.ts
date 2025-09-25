@@ -17,7 +17,13 @@ export class TokenCounter {
      * @returns Token数量
      */
     public countTokens(text: string): number {
-        if (!text || text.trim().length === 0) {
+        // 基本输入验证
+        if (!text) {
+            return 0;
+        }
+        
+        // 对于只包含空白字符的文本，返回0
+        if (!text.trim()) {
             return 0;
         }
 
@@ -54,23 +60,25 @@ export class TokenCounter {
      */
     private countGPTTokens(text: string): number {
         // 这是一个近似计算方法
-        // 对于GPT模型，通常1个Token约等于0.75个英文单词或0.5个中文字符
+        // 对于GPT模型，通常1个Token约等于0.75个英文单词或1.5个中文字符
         
-        // 计算英文单词数量
-        const englishWords = text.match(/\b[a-zA-Z]+\b/g) || [];
+        // 计算英文单词数量（改进正则，包含连字符和撇号）
+        const englishWords = text.match(/\b[a-zA-Z]+(?:[-'][a-zA-Z]+)*\b/g) || [];
         
-        // 计算中文字符数量
-        const chineseChars = text.match(/[\u4e00-\u9fff]/g) || [];
+        // 计算中文字符数量（修正字符范围，只包含基本汉字）
+        const chineseChars = text.match(/[\u4e00-\u9fa5]/g) || [];
         
-        // 计算数字和符号
-        const numbers = text.match(/\d+/g) || [];
-        const symbols = text.match(/[^\w\s\u4e00-\u9fff]/g) || [];
+        // 计算数字（包含小数和负数）
+        const numbers = text.match(/-?\d+(?:\.\d+)?/g) || [];
         
-        // 估算Token数量
-        const englishTokens = Math.ceil(englishWords.length * 1.3); // 英文单词通常比Token多
-        const chineseTokens = Math.ceil(chineseChars.length * 0.5); // 中文字符通常2个字符约1个Token
+        // 计算标点符号和特殊字符（排除已计算的字符）
+        const symbols = text.match(/[^\w\s\u4e00-\u9fa5.-]/g) || [];
+        
+        // 估算Token数量（基于GPT系列的实际分词特性调整系数）
+        const englishTokens = Math.ceil(englishWords.length * 1.0); // 英文单词基本1:1对应Token
+        const chineseTokens = Math.ceil(chineseChars.length / 1.5); // 中文字符约1.5个字符1个Token
         const numberTokens = numbers.length;
-        const symbolTokens = Math.ceil(symbols.length * 0.5);
+        const symbolTokens = Math.ceil(symbols.length * 0.3); // 符号通常压缩率较高
         
         return englishTokens + chineseTokens + numberTokens + symbolTokens;
     }
@@ -81,17 +89,16 @@ export class TokenCounter {
      * @returns Token数量
      */
     private countClaudeTokens(text: string): number {
-        // Claude的分词方式与GPT类似，但略有不同
-        // 这里使用一个调整后的计算方法
+        // Claude的分词方式与GPT类似，但对中文和符号的处理略有不同
         
-        const englishWords = text.match(/\b[a-zA-Z]+\b/g) || [];
-        const chineseChars = text.match(/[\u4e00-\u9fff]/g) || [];
-        const numbers = text.match(/\d+/g) || [];
-        const symbols = text.match(/[^\w\s\u4e00-\u9fff]/g) || [];
+        const englishWords = text.match(/\b[a-zA-Z]+(?:[-'][a-zA-Z]+)*\b/g) || [];
+        const chineseChars = text.match(/[\u4e00-\u9fa5]/g) || [];
+        const numbers = text.match(/-?\d+(?:\.\d+)?/g) || [];
+        const symbols = text.match(/[^\w\s\u4e00-\u9fa5.-]/g) || [];
         
-        // Claude的Token计算稍微保守一些
-        const englishTokens = Math.ceil(englishWords.length * 1.2);
-        const chineseTokens = Math.ceil(chineseChars.length * 0.6);
+        // Claude的Token计算相对保守，对中文处理更精细
+        const englishTokens = Math.ceil(englishWords.length * 1.0);
+        const chineseTokens = Math.ceil(chineseChars.length / 1.3); // Claude对中文分词更细致
         const numberTokens = numbers.length;
         const symbolTokens = Math.ceil(symbols.length * 0.4);
         
@@ -106,16 +113,16 @@ export class TokenCounter {
     private countLlamaTokens(text: string): number {
         // LLaMA使用SentencePiece分词器，这里提供一个近似计算
         
-        const englishWords = text.match(/\b[a-zA-Z]+\b/g) || [];
-        const chineseChars = text.match(/[\u4e00-\u9fff]/g) || [];
-        const numbers = text.match(/\d+/g) || [];
-        const symbols = text.match(/[^\w\s\u4e00-\u9fff]/g) || [];
+        const englishWords = text.match(/\b[a-zA-Z]+(?:[-'][a-zA-Z]+)*\b/g) || [];
+        const chineseChars = text.match(/[\u4e00-\u9fa5]/g) || [];
+        const numbers = text.match(/-?\d+(?:\.\d+)?/g) || [];
+        const symbols = text.match(/[^\w\s\u4e00-\u9fa5.-]/g) || [];
         
-        // LLaMA对于子词的分割更细
-        const englishTokens = Math.ceil(englishWords.length * 1.4);
-        const chineseTokens = Math.ceil(chineseChars.length * 0.8);
-        const numberTokens = Math.ceil(numbers.length * 1.2);
-        const symbolTokens = symbols.length;
+        // LLaMA对于子词的分割更细，特别是对长单词和复合词
+        const englishTokens = Math.ceil(englishWords.length * 1.2);
+        const chineseTokens = Math.ceil(chineseChars.length / 1.2); // LLaMA对中文的Token化相对较细
+        const numberTokens = Math.ceil(numbers.length * 1.1);
+        const symbolTokens = Math.ceil(symbols.length * 0.5);
         
         return englishTokens + chineseTokens + numberTokens + symbolTokens;
     }
@@ -132,23 +139,26 @@ export class TokenCounter {
         
         let wordCount = 0;
         
-        // 计算中文词汇（按双字词为主）
-        const chineseText = text.replace(/[^\u4e00-\u9fff]/g, '');
-        wordCount += Math.ceil(chineseText.length / 2);
+        // 计算中文词汇（修正字符范围，使用更精确的汉字范围）
+        const chineseText = text.replace(/[^\u4e00-\u9fa5]/g, '');
+        // 中文分词按双字词为主，但考虑单字词的情况
+        wordCount += Math.ceil(chineseText.length / 1.8); // 平均词长约1.8字符
         
-        // 计算英文单词
-        const englishWords = text.match(/\b[a-zA-Z]+\b/g) || [];
+        // 计算英文单词（改进正则表达式）
+        const englishWords = text.match(/\b[a-zA-Z]+(?:[-'][a-zA-Z]+)*\b/g) || [];
         wordCount += englishWords.length;
         
-        // 计算数字
-        const numbers = text.match(/\d+/g) || [];
+        // 计算数字（包含小数和负数）
+        const numbers = text.match(/-?\d+(?:\.\d+)?/g) || [];
         wordCount += numbers.length;
         
-        // 计算标点符号
-        const punctuation = text.match(/[，。；：？！""''（）【】]/g) || [];
-        wordCount += punctuation.length;
+        // 计算中文标点符号（扩展范围，包含常用中文标点）
+        const chinesePunctuation = text.match(/[，。；：？！""''（）【】《》〈〉「」『』、·]/g) || [];
+        const otherPunctuation = text.match(/[^\w\s\u4e00-\u9fa5，。；：？！""''（）【】《》〈〉「」『』、·.-]/g) || [];
+        wordCount += chinesePunctuation.length;
+        wordCount += Math.ceil(otherPunctuation.length * 0.5); // 其他标点压缩计算
         
-        return wordCount;
+        return Math.max(1, wordCount); // 确保至少返回1
     }
 
     /**
@@ -159,19 +169,31 @@ export class TokenCounter {
      */
     private countSimpleWords(text: string): number {
         // 移除多余的空白字符并分割
-        const words = text.trim().split(/\s+/).filter(word => word.length > 0);
+        const trimmedText = text.trim();
+        if (!trimmedText) {
+            return 0;
+        }
+        
+        const words = trimmedText.split(/\s+/).filter(word => word.length > 0);
         
         // 对于包含中文的文本，需要特殊处理
         let totalCount = 0;
         
         for (const word of words) {
-            if (/[\u4e00-\u9fff]/.test(word)) {
-                // 包含中文字符的词，按字符数计算
-                const chineseChars = word.match(/[\u4e00-\u9fff]/g) || [];
-                const otherChars = word.replace(/[\u4e00-\u9fff]/g, '');
+            // 检查是否包含中文字符（使用精确的汉字范围）
+            if (/[\u4e00-\u9fa5]/.test(word)) {
+                // 包含中文字符的词，分离中文和非中文部分
+                const chineseChars = word.match(/[\u4e00-\u9fa5]/g) || [];
+                const nonChineseText = word.replace(/[\u4e00-\u9fa5]/g, '').trim();
+                
+                // 中文字符按字符数计算
                 totalCount += chineseChars.length;
-                if (otherChars.trim()) {
-                    totalCount += 1; // 其他字符算作一个单词
+                
+                // 非中文部分如果有内容，算作一个单词
+                if (nonChineseText) {
+                    // 进一步分析非中文部分是否包含多个单词
+                    const nonChineseWords = nonChineseText.split(/[^\w.-]+/).filter(w => w.length > 0);
+                    totalCount += Math.max(1, nonChineseWords.length);
                 }
             } else {
                 // 纯英文或其他字符的词
@@ -179,7 +201,7 @@ export class TokenCounter {
             }
         }
         
-        return totalCount;
+        return Math.max(1, totalCount); // 确保至少返回1
     }
 
     /**
