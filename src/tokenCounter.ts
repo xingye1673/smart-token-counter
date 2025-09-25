@@ -3,6 +3,13 @@ import { ConfigManager } from './configManager';
 /**
  * Token计数器核心类
  * 负责根据不同的分词方案计算文本的Token数量
+ * 
+ * 修复说明：
+ * - 修正中文字符Unicode范围，从\u4e00-\u9fff改为\u4e00-\u9fa5（基本汉字块）
+ * - 改进正则表达式，支持连字符、撇号、负数、小数点等
+ * - 优化Token计算系数，使估算结果更接近真实分词
+ * - 增强边界情况处理（空文本、纯空格、混合文本等）
+ * - 扩展中文标点符号识别范围
  */
 export class TokenCounter {
     private configManager: ConfigManager;
