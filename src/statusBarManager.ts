@@ -170,7 +170,7 @@ export class StatusBarManager implements vscode.Disposable {
                 tooltip += `\n\n💡 Token数量已超过提醒阈值`;
                 break;
             case 'danger':
-                tooltip += `\n\n� Token数量已超过关注阈值`;
+                tooltip += `\n\n🔥 Token数量已超过关注阈值`;
                 break;
             case 'error':
                 tooltip += `\n\n❌ 计算过程中发生错误`;

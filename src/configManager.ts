@@ -43,6 +43,7 @@ export class ConfigManager {
             tokenizerType: config.get<string>('tokenizerType', 'gpt-3.5-turbo'),
             warningThreshold: config.get<number>('warningThreshold', 4000),
             dangerThreshold: config.get<number>('dangerThreshold', 8000),
+            enableColorWarning: config.get<boolean>('enableColorWarning', true),
             showInStatusBar: config.get<boolean>('showInStatusBar', true),
             updateMode: config.get<string>('updateMode', 'realtime')
         };
@@ -101,6 +102,7 @@ export class ConfigManager {
             tokenizerType: 'gpt-3.5-turbo',
             warningThreshold: 4000,
             dangerThreshold: 8000,
+            enableColorWarning: true,
             showInStatusBar: true,
             updateMode: 'realtime'
         };
@@ -139,13 +141,18 @@ export class ConfigManager {
                 type: 'number',
                 default: 4000,
                 minimum: 100,
-                description: '警告阈值：Token数量超过此值时显示黄色警告'
+                description: '提醒阈值：Token数量超过此值时提供提醒'
             },
             dangerThreshold: {
                 type: 'number',
                 default: 8000,
                 minimum: 100,
-                description: '危险阈值：Token数量超过此值时显示红色警告'
+                description: '关注阈值：Token数量超过此值时提供特别关注提醒'
+            },
+            enableColorWarning: {
+                type: 'boolean',
+                default: true,
+                description: '是否启用颜色提醒：超过阈值时改变显示颜色'
             },
             showInStatusBar: {
                 type: 'boolean',

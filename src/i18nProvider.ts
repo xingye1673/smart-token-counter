@@ -68,10 +68,12 @@ export class I18nProvider {
         this.messages = {
             'command.toggleDisplay': 'Toggle Token Count Display',
             'command.openSettings': 'Open Token Counter Settings',
+            'command.manualRefresh': 'Manual Refresh Token Count',
             'config.enabled': 'Enable Token Counter functionality',
             'config.tokenizerType': 'Select tokenizer type',
-            'config.warningThreshold': 'Warning threshold: Show yellow warning when token count exceeds this value',
-            'config.dangerThreshold': 'Danger threshold: Show red warning when token count exceeds this value',
+            'config.warningThreshold': 'Reminder threshold: Show reminder when token count exceeds this value',
+            'config.dangerThreshold': 'Attention threshold: Show attention reminder when token count exceeds this value',
+            'config.enableColorWarning': 'Enable color warning: Change display color when thresholds are exceeded',
             'config.showInStatusBar': 'Show token count in status bar',
             'config.updateMode': 'Update mode: Choose how frequently token count updates',
             'statusBar.tokens': 'tokens',
@@ -82,7 +84,8 @@ export class I18nProvider {
             'notification.thresholdExceeded': 'Token count has exceeded threshold',
             'notification.configUpdated': 'Configuration updated',
             'notification.displayEnabled': 'Token counter display enabled',
-            'notification.displayDisabled': 'Token counter display disabled'
+            'notification.displayDisabled': 'Token counter display disabled',
+            'notification.manualRefresh': 'Token count manually refreshed'
         };
     }
 
